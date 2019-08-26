@@ -1,3 +1,9 @@
 */.DS_Store
 training/src/__pycache__
 .idea/*
+bin/
+lib/
+lib64
+pyvenv.cfg
+training/training_data/
+training/training_result/

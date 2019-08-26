@@ -43,6 +43,7 @@ def get_loss_and_output(model, batchsize, input_image, input_heat, reuse_variabl
         _, pred_heatmaps_all = get_network(model, input_image, True)
 
     for idx, pred_heat in enumerate(pred_heatmaps_all):
+        print(f"Processing loss for idx: {idx} heatmap: {pred_heat}")
         loss_l2 = tf.nn.l2_loss(tf.concat(pred_heat, axis=0) - input_heat, name='loss_heatmap_stage%d' % idx)
         losses.append(loss_l2)
 
@@ -130,6 +131,7 @@ def main(argv=None):
         tower_grads = []
         reuse_variable = False
 
+        '''
         if platform.system() == 'Darwin':
             # cpu (mac only)
             with tf.device("/cpu:0"):
@@ -150,6 +152,17 @@ def main(argv=None):
                         reuse_variable = True
                         grads = opt.compute_gradients(loss)
                         tower_grads.append(grads)
+        '''
+        # ====== cpu (mac only) =====
+        with tf.device("/cpu:0"):
+            with tf.name_scope("CPU_0"):
+                input_image, input_heat = input_iterator.get_next()
+                loss, last_heat_loss, pred_heat = get_loss_and_output(params['model'], params['batchsize'],
+                                                                      input_image, input_heat, reuse_variable)
+                reuse_variable = True
+                grads = opt.compute_gradients(loss)
+                tower_grads.append(grads)
+        # ============================
 
         grads = average_gradients(tower_grads)
         for grad, var in grads:
